@@ -15,7 +15,7 @@ public class HttpHandler : MonoBehaviour
     [SerializeField]
     private string token ;
     public TMP_Text[] Puestos ;
-    public TMP_Text Nombre;
+    public TMP_Text Nombre,Error;
     //eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiI2YThlYTg3N2I0YTkwZDQ2IiwiaWF0IjoxNjc1OTg2MjgyLCJleHAiOjE2NzYwMDA2ODJ9.IQL4pTBsGki6yglfZt-9U0tmL6L-RBtfxsfWUUKH3x0
     // Start is called before the first frame update
     void Start()
@@ -112,6 +112,8 @@ public class HttpHandler : MonoBehaviour
                 mensaje += "\ncontent-type:" + www.GetResponseHeader("content-type");
                 mensaje += "\nError :" + www.error;
                 Debug.Log(mensaje);
+                Error.text = "Error : El usuario ya existe  ";
+                StartCoroutine(Mensaje());
             }
 
         }
@@ -157,6 +159,8 @@ public class HttpHandler : MonoBehaviour
                 mensaje += "\ncontent-type:" + www.GetResponseHeader("content-type");
                 mensaje += "\nError :" + www.error;
                 Debug.Log(mensaje);
+                Error.text = "Error : No existe este usuario o te equivocaste de contraseña  ";
+                StartCoroutine(Mensaje());
             }
 
         }
@@ -197,6 +201,8 @@ public class HttpHandler : MonoBehaviour
                 string mensaje = "Status :" + www.responseCode;
                 mensaje += "\ncontent-type:" + www.GetResponseHeader("content-type");
                 mensaje += "\nError :" + www.error;
+                Error.text = "Error : El usuario anterior a cerrado seccion ";
+                StartCoroutine(Mensaje());
                 Debug.Log(mensaje);
             }
 
@@ -204,7 +210,7 @@ public class HttpHandler : MonoBehaviour
     }
     IEnumerator MoreInfo()
     {
-        UnityWebRequest www = UnityWebRequest.Get(ServerApiURL + "/api/usuarios"+"?limit=5");
+        UnityWebRequest www = UnityWebRequest.Get(ServerApiURL + "/api/usuarios");
         www.SetRequestHeader("x-token", Token);
         yield return www.SendWebRequest();
 
@@ -231,9 +237,18 @@ public class HttpHandler : MonoBehaviour
                 int puesto=0;
                 foreach (User a in listaOrdenada)
                 {
-                    string nombre =puesto+1+"."+"Usuario:"+a.username+",Puntaje:"+a.data.score;
-                    Puestos[puesto].text=nombre;
-                    puesto++;
+                    if (puesto > 4)
+                    {
+
+                    }
+                    else
+                    {
+                        string nombre = puesto + 1 + "." + "Usuario:" + a.username + ",Puntaje:" + a.data.score;
+                        Puestos[puesto].text = nombre;
+                        puesto++;
+
+                    }
+
                 }
             }
             else
@@ -250,7 +265,7 @@ public class HttpHandler : MonoBehaviour
     }
     IEnumerator updateDate(string postData)
     {
-        
+
         UnityWebRequest www = UnityWebRequest.Put(ServerApiURL + "/api/usuarios/", postData);
         www.method = "PATCH";
         www.SetRequestHeader("x-token", Token);
@@ -270,7 +285,6 @@ public class HttpHandler : MonoBehaviour
             {
 
                 AuthJsonData jsonData = JsonUtility.FromJson<AuthJsonData>(www.downloadHandler.text);
-
                 StartCoroutine(MoreInfo());
                 Debug.Log(jsonData.usuario.username + " se actualizo " + jsonData.usuario.data.score);
             }
@@ -283,6 +297,11 @@ public class HttpHandler : MonoBehaviour
             }
 
         }
+    } 
+    IEnumerator Mensaje()
+    {
+      yield return new WaitForSeconds(5f);
+      Error.text = "";
     }
 }
 
